@@ -33,11 +33,14 @@ def create_kb_account(user, reason, comment, options)
   account.create(user, reason, comment, options)
 end
 
-def create_kb_payment_method(account, dwolla_funding_source, user, reason, comment, options)
+def create_kb_payment_method(account, funding_source, customer_id, user, reason, comment, options)
+  puts "Customer ID: #{customer_id}"
+  puts "Funding Source: #{funding_source}"
+
   pm = KillBillClient::Model::PaymentMethod.new
   pm.account_id = account.account_id
   pm.plugin_name = 'killbill-dwolla'
-  pm.plugin_info = {'fundingSource' => dwolla_funding_source }
+  pm.plugin_info = {'fundingSource' => funding_source, 'customerId' => customer_id }
   pm.create(true, user, reason, comment, options)
 end
 
@@ -106,6 +109,7 @@ get '/' do
   iav_token = customer_iav.token # => "lr0Ax1zwIpeXXt8sJDiVXjPbwEeGO6QKFWBIaKvnFG0Sm2j7vL"
 
   @iav = iav_token
+  @customerId = customer_url
 
   erb :index
 end
@@ -115,7 +119,7 @@ post '/charge' do
   account = create_kb_account(user, reason, comment, options)
 
   # Add a payment method associated with the Stripe token
-  create_kb_payment_method(account, params[:dwollaFundingSource], user, reason, comment, options)
+  create_kb_payment_method(account, params['fundingSource'], params['customerId'], user, reason, comment, options)
 
   # Add a subscription
   create_subscription(account, user, reason, comment, options)
@@ -158,7 +162,8 @@ __END__
 
   <div id="iavContainer"></div>
   <form action="/charge" method="post" id="form">
-    <input type="hidden" id="dwollaFundingSource" />
+    <input type="hidden" name="fundingSource" value = "" />
+    <input type="hidden" name="customerId" value=<%= "'#{@customerId}'" %> />
   </form>
 
   <script type="text/javascript">
@@ -177,7 +182,7 @@ __END__
               }, function(err, res) {
                   if (err) console.log('Error: ' + JSON.stringify(err) + ' -- Response: ' + JSON.stringify(res));
                   var fundingUrl = res._links['funding-source'].href;
-                  $('#dwollaFundingSource').value = fundingUrl;
+                  $('input[name=fundingSource]').val(fundingUrl);
                   $('#form').submit();
                 });
         });
