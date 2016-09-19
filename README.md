@@ -1,7 +1,7 @@
 Kill Bill Dwolla demo
 =====================
 
-Inspired from the official [Using Checkout and Sinatra](https://stripe.com/docs/checkout/sinatra) guide, this sample app shows you how to integrate Dwolla tokenization feature with [Kill Bill subscriptions APIs](http://docs.killbill.io/0.16/userguide_subscription.html).
+This sample app shows you how to integrate Dwolla tokenization feature with [Kill Bill subscriptions APIs](http://docs.killbill.io/0.16/userguide_subscription.html).
 
 Prerequisites
 -------------
@@ -24,6 +24,8 @@ bundle install
 
 This also assumes:
 
+* A Dwolla [Sandbox](https://developers.dwolla.com/guides/sandbox-setup/) account is created
+* An [application is created](https://developers.dwolla.com/guides/sandbox-setup/02-create-application.html) on the Dwolla account
 * Kill Bill is [already setup](http://docs.killbill.io/0.16/getting_started.html)
 * The default tenant (bob/lazar) has been created
 * The [Dwolla plugin](https://github.com/killbill/killbill-dwolla-plugin) is installed and configured
@@ -55,6 +57,8 @@ This will:
 * Add a default payment method on this account associated with this token
 * Create a new subscription for the sports car monthly plan (with a $10 30-days trial)
 * Charge the token for $10
+
+![Merchant application](./application.png)
 
 ![Shopping cart](./screen1.png)
 
