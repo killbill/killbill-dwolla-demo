@@ -39,11 +39,6 @@ To run the app:
 KB_URL='http://<host>:<port>' DWOLLA_CLIENT_ID='<MERCHANT_DWOLLA_CLIENT_ID>' DWOLLA_CLIENT_SECRET='<MERCHANT_DWOLLA_CLIENT_SECRET>' DWOLLA_ACCESS_TOKEN='<MERCHANT_DWOLLA_ACCESS_TOKEN>' ruby app.rb
 ```
 
-or if you are using Docker:
-
-```
-KB_URL='http://<host>:<port>' DWOLLA_CLIENT_ID='<MERCHANT_DWOLLA_CLIENT_ID>' DWOLLA_CLIENT_SECRET='<MERCHANT_DWOLLA_CLIENT_SECRET>' DWOLLA_ACCESS_TOKEN='<MERCHANT_DWOLLA_ACCESS_TOKEN>' ruby app.rb
-```
 
 Then go to [http://localhost:4567/](http://localhost:4567/) where you should see the Dwolla **Add Bank** button.
 
