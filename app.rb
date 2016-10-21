@@ -7,6 +7,7 @@ set :kb_url, ENV['KB_URL'] || 'http://127.0.0.1:8080'
 set :client_id, ENV['DWOLLA_CLIENT_ID']
 set :client_secret, ENV['DWOLLA_CLIENT_SECRET']
 set :dwolla_access_token, ENV['DWOLLA_ACCESS_TOKEN']
+set :customer_id, ''
 
 #
 # Kill Bill configuration and helpers
@@ -29,7 +30,7 @@ comment = 'Trigger by Sinatra'
 
 def create_kb_account(dwolla_customer_id, user, reason, comment, options)
   account = KillBillClient::Model::Account.new
-  account.name = 'John Doe'
+  account.name = "John Doe #{dwolla_customer_id}"
   account.currency = 'USD'
   account.external_key = dwolla_customer_id
   account.create(user, reason, comment, options)
@@ -113,12 +114,14 @@ get '/' do
   @customerId = get_key_from_url(customer_url, '/customers/')
   @clientId = settings.client_id
 
+  settings.customer_id = @customerId
+
   erb :index
 end
 
 post '/charge' do
   # Create an account
-  account = create_kb_account(@customerId, user, reason, comment, options)
+  account = create_kb_account(settings.customer_id, user, reason, comment, options)
 
   # Add a payment method associated with the Dwolla funding source
   fundingSourceId = get_key_from_url(params['fundingSource'], '/funding-sources/')
@@ -136,7 +139,7 @@ end
 
 get '/callback' do
   # Create an account
-  account = create_kb_account(@customerId, user, reason, comment, options)
+  account = create_kb_account(nil, user, reason, comment, options)
 
   # Add a payment method associated with the Dwolla Direct auth code
   create_kb_payment_method(account, nil, nil, params['code'], user, reason, comment, options)
