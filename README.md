@@ -40,9 +40,20 @@ KB_URL='http://<host>:<port>' DWOLLA_CLIENT_ID='<MERCHANT_DWOLLA_CLIENT_ID>' DWO
 ```
 
 
-Then go to [http://localhost:4567/](http://localhost:4567/) where you should see the Dwolla **Add Bank** button.
+Then go to [http://localhost:4567/](http://localhost:4567/) where you should see both Dwolla solutions.
 
-Select a Bank, follow the steps with dummy data and complete the checkout process.
+The first option is the White Label solution, that you don't need a Dwolla account and where you are able to select your bank and account by your bank credentials. 
+Steps: 
+
+* Press **Add Bank by White Label Solution** button.
+* Select a Bank, follow the steps with any dummy data and complete the checkout process.
+
+
+The other option is the Dwolla Direct solution, where you are redirect to Dwolla page and you have to login with you Dwolla account. It's also have the option to create a new Dwolla account if you don't have one.
+Steps: 
+
+* Press **Sign in by Dwolla Direct Solution** link.
+* Log in or sign up and complete the checkout process.
 
 This will:
 
@@ -57,5 +68,7 @@ This will:
 
 ![Shopping cart](./screen1.png)
 
-![Checkout](./screen2.png)
+![White Label solution](./screen2.png)
+
+![Dwolla Direct solution](./screen3.png)
 

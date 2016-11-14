@@ -7,6 +7,7 @@ set :kb_url, ENV['KB_URL'] || 'http://127.0.0.1:8080'
 set :client_id, ENV['DWOLLA_CLIENT_ID']
 set :client_secret, ENV['DWOLLA_CLIENT_SECRET']
 set :dwolla_access_token, ENV['DWOLLA_ACCESS_TOKEN']
+set :customer_id, ''
 
 #
 # Kill Bill configuration and helpers
@@ -29,20 +30,20 @@ comment = 'Trigger by Sinatra'
 
 def create_kb_account(dwolla_customer_id, user, reason, comment, options)
   account = KillBillClient::Model::Account.new
-  account.name = 'John Doe'
+  account.name = "John Doe #{dwolla_customer_id}"
   account.currency = 'USD'
   account.external_key = dwolla_customer_id
   account.create(user, reason, comment, options)
 end
 
-def create_kb_payment_method(account, funding_source, customer_id, user, reason, comment, options)
+def create_kb_payment_method(account, funding_source, customer_id, authCode, user, reason, comment, options)
   puts "Customer ID: #{customer_id}"
   puts "Funding Source: #{funding_source}"
 
   pm = KillBillClient::Model::PaymentMethod.new
   pm.account_id = account.account_id
   pm.plugin_name = 'killbill-dwolla'
-  pm.plugin_info = {'fundingSource' => funding_source, 'customerId' => customer_id }
+  pm.plugin_info = {'fundingSource' => funding_source, 'customerId' => customer_id, 'code' => authCode}
   pm.create(true, user, reason, comment, options)
 end
 
@@ -111,17 +112,20 @@ get '/' do
   customer_iav = account_token.post "#{customer_url}/iav-token"
   @iav = customer_iav.token
   @customerId = get_key_from_url(customer_url, '/customers/')
+  @clientId = settings.client_id
+
+  settings.customer_id = @customerId
 
   erb :index
 end
 
 post '/charge' do
   # Create an account
-  account = create_kb_account(@customerId, user, reason, comment, options)
+  account = create_kb_account(settings.customer_id, user, reason, comment, options)
 
   # Add a payment method associated with the Dwolla funding source
   fundingSourceId = get_key_from_url(params['fundingSource'], '/funding-sources/')
-  create_kb_payment_method(account, fundingSourceId, params['customerId'], user, reason, comment, options)
+  create_kb_payment_method(account, fundingSourceId, params['customerId'], nil, user, reason, comment, options)
 
   # Add a subscription
   create_subscription(account, user, reason, comment, options)
@@ -129,6 +133,22 @@ post '/charge' do
   # Retrieve the invoice
   @invoice = account.invoices(true, options).first
   @customerId = params['customerId']
+
+  erb :charge
+end
+
+get '/callback' do
+  # Create an account
+  account = create_kb_account(nil, user, reason, comment, options)
+
+  # Add a payment method associated with the Dwolla Direct auth code
+  create_kb_payment_method(account, nil, nil, params['code'], user, reason, comment, options)
+
+  # Add a subscription
+  create_subscription(account, user, reason, comment, options)
+
+  # Retrieve the invoice
+  @invoice = account.invoices(true, options).first
 
   erb :charge
 end
@@ -155,7 +175,9 @@ __END__
       </label>
     </article>
   <div id="mainContainer">
-     <input type="button" id="start" value="Add Bank">
+     <input type="button" id="start" value="Add Bank by White Label Solution">
+     <br> or <br>
+     <a id="direct" href="<%= "https://uat.dwolla.com/oauth/v2/authenticate?client_id=#{@clientId}&response_type=code&redirect_uri=http://localhost:4567/callback&scope=Send|Funding" %>">Sign in by Dwolla Direct Solution"</a>
   </div>
 
   <div id="iavContainer"></div>
@@ -175,8 +197,8 @@ __END__
                   'http://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext',
                   'http://localhost:8080/iav/customStylesheet.css'
                 ],
-                microDeposits: 'true',
-                fallbackToMicroDeposits : 'true'
+                microDeposits: 'false',
+                fallbackToMicroDeposits : 'false'
               }, function(err, res) {
                   if (err) console.log('Error: ' + JSON.stringify(err) + ' -- Response: ' + JSON.stringify(res));
                   var fundingUrl = res._links['funding-source'].href;
